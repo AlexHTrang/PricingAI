@@ -20,6 +20,18 @@ const Simulation: React.FC<SimulationProps> = ({ skusInAnalysis }) => {
     return currentPrice * (1 + changePercent / 100);
   };
 
+  const calculateNewGP = (currentGP: number, priceChangePercent: number) => {
+    return currentGP * (1 + priceChangePercent / 100);
+  };
+
+  const formatNumber = (value: number | undefined, decimals: number = 2) => {
+    if (value === undefined || value === null) return '--';
+    return value.toLocaleString('en-US', { 
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals 
+    });
+  };
+
   return (
     <div className="p-6">
       <h2 className="text-2xl font-medium text-green-600 mb-6">Pricing Configuration</h2>
@@ -31,6 +43,7 @@ const Simulation: React.FC<SimulationProps> = ({ skusInAnalysis }) => {
               <th className="text-left py-4 px-4 font-medium text-gray-600">Name of Product</th>
               <th className="text-left py-4 px-4 font-medium text-gray-600">Competitor or own SKU</th>
               <th className="text-left py-4 px-4 font-medium text-gray-600">Current consumer price (€/unit)</th>
+              <th className="text-left py-4 px-4 font-medium text-gray-600">Current GP (€/HL)</th>
               <th className="text-left py-4 px-4 font-medium text-gray-600">Input - Consumer price change (%)</th>
               <th className="text-left py-4 px-4 font-medium text-gray-600">New consumer price (€/unit)</th>
               <th className="text-left py-4 px-4 font-medium text-gray-600">New GP (€/HL)</th>
@@ -40,13 +53,18 @@ const Simulation: React.FC<SimulationProps> = ({ skusInAnalysis }) => {
             {skusInAnalysis.map((sku) => {
               const priceChange = priceChanges[sku.name] || 0;
               const currentPrice = sku.customer_price || 0;
+              const currentGP = sku.gp || 0;
               const newPrice = calculateNewPrice(currentPrice, priceChange);
+              const newGP = calculateNewGP(currentGP, priceChange);
 
               return (
                 <tr key={sku.name} className="border-b">
                   <td className="py-3 px-4">{sku.name}</td>
                   <td className="py-3 px-4">{sku.ownership}</td>
-                  <td className="py-3 px-4">{currentPrice.toFixed(2)}</td>
+                  <td className="py-3 px-4">{formatNumber(currentPrice)}</td>
+                  <td className="py-3 px-4">
+                    {sku.ownership === 'OWN' ? formatNumber(currentGP, 4) : '--'}
+                  </td>
                   <td className="py-3 px-4">
                     <input
                       type="number"
@@ -56,9 +74,9 @@ const Simulation: React.FC<SimulationProps> = ({ skusInAnalysis }) => {
                       placeholder="--%"
                     />
                   </td>
-                  <td className="py-3 px-4">{newPrice.toFixed(2)}</td>
+                  <td className="py-3 px-4">{formatNumber(newPrice)}</td>
                   <td className="py-3 px-4">
-                    {sku.ownership === 'OWN' ? (sku.gp || 0).toFixed(2) : '--'}
+                    {sku.ownership === 'OWN' ? formatNumber(newGP, 4) : '--'}
                   </td>
                 </tr>
               );

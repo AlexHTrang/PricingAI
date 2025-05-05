@@ -41,19 +41,19 @@ function App() {
           </div>
         </div>
         <nav className="px-4">
-          <ul className="flex border-b">
-            <li className="mr-4">
-              <a href="#" className="inline-block px-4 py-2 text-gray-500 hover:text-gray-700">
+          <ul className="flex border-b justify-center">
+            <li className="mx-4">
+              <a href="#" className="inline-block px-6 py-3 text-lg font-bold text-gray-500 hover:text-gray-700">
                 Macro Economics View
               </a>
             </li>
-            <li className="mr-4">
-              <a href="#" className="inline-block px-4 py-2 text-gray-500 hover:text-gray-700">
+            <li className="mx-4">
+              <a href="#" className="inline-block px-6 py-3 text-lg font-bold text-gray-500 hover:text-gray-700">
                 Diagnostics View
               </a>
             </li>
-            <li className="mr-4">
-              <a href="#" className="inline-block px-4 py-2 text-heineken-green border-b-2 border-heineken-green">
+            <li className="mx-4">
+              <a href="#" className="inline-block px-6 py-3 text-lg font-bold text-heineken-green border-b-2 border-heineken-green">
                 Pricing Simulator
               </a>
             </li>

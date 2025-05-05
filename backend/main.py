@@ -41,16 +41,55 @@ class PriceChange(BaseModel):
 
 # Load data from CSV
 def load_sku_data():
-    csv_path = Path(__file__).parent / "data" / "SKU.csv"
+    csv_path = Path(__file__).parent / "data" / "aggregated_sales_2025.csv"
     try:
         df = pd.read_csv(csv_path)
-        # Rename columns to match frontend expectations
+        # The columns are already properly named in the CSV, just need to map them to our model
         df = df.rename(columns={
-            'SKU': 'name',
-            'OWNERSHIP': 'ownership',
+            'ITEM': 'name',
             'Level_1': 'category',
-            'Level_3': 'segment'
+            'Level_3': 'segment',
+            'VolumePerUnit': 'volume',  # Volume (L/Units)
+            'CustomerPrice': 'customer_price',  # Customer Price (EUR/unit)
+            'GrossProfit': 'gp',  # GP (EUR/hL)
+            'VolumeSold': 'volume_sold',  # Volume sold (khL)
+            'PriceElasticity': 'price_elasticity',  # Price elasticity
+            'PricePerL': 'price',  # Price (EUR/L)
+            'RSV': 'rsv',  # RSV (mass, EUR m)
+            'Profit': 'gp_mass',  # GP (mass, EUR m)
+            'Total_Sales_Units': 'unit_sold',  # Unit sold (# of k units)
+            'OWNERSHIP': 'ownership'
         })
+        
+        # Ensure numeric columns are float type
+        numeric_columns = ['volume', 'customer_price', 'gp', 'volume_sold', 
+                         'price_elasticity', 'price', 'rsv', 'gp_mass', 
+                         'unit_sold']
+        for col in numeric_columns:
+            df[col] = pd.to_numeric(df[col], errors='coerce')
+        
+        # Calculate market shares
+        total_volume = df['volume_sold'].sum()
+        total_value = (df['customer_price'] * df['volume_sold']).sum()
+        df['volume_share'] = 0
+        df['value_share'] = 0
+        
+        # Round numeric values for display
+        df = df.round({
+            'volume': 2,
+            'customer_price': 2,
+            'gp': 4,
+            'volume_sold': 0,
+            'price_elasticity': 2,
+            'price': 2,
+            'rsv': 2,
+            'gp_mass': 2,
+            'unit_sold': 2
+        })
+        
+        # Fill any missing values with 0
+        df = df.fillna(0)
+        
         return df
     except FileNotFoundError:
         return pd.DataFrame()
@@ -63,7 +102,10 @@ calculator = PriceCalculator(load_sku_data())
 async def get_skus():
     """Get all SKUs"""
     df = load_sku_data()
-    return df.to_dict('records')
+    result = df.to_dict('records')
+    # Debug log
+    print("First SKU data:", result[0] if result else "No SKUs found")
+    return result
 
 @app.get("/api/skus/search")
 async def search_skus(

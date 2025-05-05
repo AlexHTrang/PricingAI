@@ -43,4 +43,4 @@ yarn-error.log*
 *.xlsx
 *.xls
 *.csv
-!backend/data/SKU.csv  # Keep this specific CSV file
+!backend/data/aggregate_sales_2025.csv  # Keep this specific CSV file
