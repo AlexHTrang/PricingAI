@@ -23,11 +23,16 @@ const SKUConfiguration: React.FC<SKUConfigurationProps> = ({ onSkusInAnalysisCha
   const [selectedOwnership, setSelectedOwnership] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedSegment, setSelectedSegment] = useState('');
-  const [selectedSKUs, setSelectedSKUs] = useState<string[]>([]);
   const [availableSKUs, setAvailableSKUs] = useState<SKU[]>([]);
   const [loading, setLoading] = useState(false);
   const [allSKUs, setAllSKUs] = useState<SKU[]>([]);
   const [priceChanges, setPriceChanges] = useState<Record<string, number>>({});
+
+  // Initialize selectedSKUs from skusInAnalysis
+  useEffect(() => {
+    const skuNames = skusInAnalysis.map(sku => sku.name);
+    filterSKUs(skuNames);
+  }, [skusInAnalysis]);
 
   // Reset segment when category changes
   useEffect(() => {
@@ -73,51 +78,26 @@ const SKUConfiguration: React.FC<SKUConfigurationProps> = ({ onSkusInAnalysisCha
 
   // Filter SKUs when search or filters change
   useEffect(() => {
-    filterSKUs();
+    const skuNames = skusInAnalysis.map(sku => sku.name);
+    filterSKUs(skuNames);
   }, [searchTerm, selectedOwnership, selectedCategory, selectedSegment, allSKUs]);
 
   const fetchAllSKUs = async () => {
     try {
       setLoading(true);
-      console.log('Fetching all SKUs...');
       const skus = await api.getAllSKUs();
-      console.log('Fetched SKUs:', skus);
-      // Debug log to check specific SKU data
-      if (skus.length > 0) {
-        console.log('First SKU data:', {
-          name: skus[0].name,
-          volume: skus[0].volume,
-          customer_price: skus[0].customer_price,
-          gp: skus[0].gp,
-          volume_sold: skus[0].volume_sold,
-          price_elasticity: skus[0].price_elasticity,
-          price: skus[0].price,
-          rsv: skus[0].rsv,
-          gp_mass: skus[0].gp_mass,
-          unit_sold: skus[0].unit_sold,
-          volume_share: skus[0].volume_share,
-          value_share: skus[0].value_share
-        });
-      }
       setAllSKUs(skus);
-      setAvailableSKUs(skus);
+      const skuNames = skusInAnalysis.map(sku => sku.name);
+      filterSKUs(skuNames);
     } catch (error) {
       console.error('Error fetching SKUs:', error);
-      if (error.response) {
-        console.error('Response data:', error.response.data);
-        console.error('Response status:', error.response.status);
-      } else if (error.request) {
-        console.error('No response received:', error.request);
-      } else {
-        console.error('Error setting up request:', error.message);
-      }
     } finally {
       setLoading(false);
     }
   };
 
-  const filterSKUs = () => {
-    let filteredSKUs = allSKUs.filter(sku => !selectedSKUs.includes(sku.name));
+  const filterSKUs = (selectedSkuNames: string[]) => {
+    let filteredSKUs = allSKUs.filter(sku => !selectedSkuNames.includes(sku.name));
 
     if (searchTerm) {
       filteredSKUs = filteredSKUs.filter(sku => 
@@ -148,16 +128,14 @@ const SKUConfiguration: React.FC<SKUConfigurationProps> = ({ onSkusInAnalysisCha
 
   const handleSelectSKU = (sku: SKU) => {
     const newSkusInAnalysis = [...skusInAnalysis, sku];
-    setSelectedSKUs(prev => [...prev, sku.name]);
     onSkusInAnalysisChange(newSkusInAnalysis);
-    setAvailableSKUs(prev => prev.filter(s => s.name !== sku.name));
+    filterSKUs(newSkusInAnalysis.map(s => s.name));
   };
 
   const handleRemoveSKU = (sku: SKU) => {
     const newSkusInAnalysis = skusInAnalysis.filter(s => s.name !== sku.name);
-    setSelectedSKUs(prev => prev.filter(name => name !== sku.name));
     onSkusInAnalysisChange(newSkusInAnalysis);
-    filterSKUs(); // Reapply filters to add the removed SKU back to available SKUs
+    filterSKUs(newSkusInAnalysis.map(s => s.name));
   };
 
   const handlePriceChangeInput = (skuName: string, value: string) => {
@@ -226,7 +204,17 @@ const SKUConfiguration: React.FC<SKUConfigurationProps> = ({ onSkusInAnalysisCha
                       <td className="py-3 px-4 border-r text-right whitespace-nowrap hidden md:table-cell">{formatNumber(sku.customer_price)}</td>
                       <td className="py-3 px-4 border-r text-right whitespace-nowrap hidden xl:table-cell">{formatNumber(sku.gp, 0)}</td>
                       <td className="py-3 px-4 border-r text-right whitespace-nowrap hidden lg:table-cell">{formatNumber(sku.volume_sold, 0)}</td>
-                      <td className="py-3 px-4 border-r text-right whitespace-nowrap hidden xl:table-cell">{formatNumber(sku.price_elasticity, 1)}</td>
+                      <td className={`py-3 px-4 border-r text-right whitespace-nowrap hidden xl:table-cell font-bold ${
+                        sku.price_elasticity !== undefined && sku.price_elasticity !== null
+                          ? sku.price_elasticity > 0 
+                            ? 'bg-green-50 text-green-700' 
+                            : sku.price_elasticity < 0 
+                              ? 'bg-red-50 text-red-700' 
+                              : ''
+                          : ''
+                      }`}>
+                        {formatNumber(sku.price_elasticity, 1)}
+                      </td>
                       <td className="py-3 px-4 border-r text-right whitespace-nowrap hidden md:table-cell">{formatNumber(sku.price)}</td>
                       <td className="py-3 px-4 border-r text-right whitespace-nowrap hidden lg:table-cell">{formatNumber(sku.rsv, 2)}</td>
                       <td className="py-3 px-4 border-r text-right whitespace-nowrap hidden xl:table-cell">{formatNumber(sku.gp_mass, 2)}</td>
