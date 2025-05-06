@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import PricingSimulator from './components/PricingSimulator';
 import SKUConfiguration from './components/SKUConfiguration';
 import Simulation from './components/Simulation';
 import Results from './components/Results';
@@ -20,23 +19,6 @@ function App() {
   const [flowStatuses, setFlowStatuses] = useState<{ [key: string]: FlowStatus }>({});
   const [kValue, setKValue] = useState(5);
   const [nValue, setNValue] = useState(2);
-
-  const handleSkusInAnalysisChange = (skus: SKU[]) => {
-    setSkusInAnalysis(skus);
-  };
-
-  const handlePriceChangesUpdate = (changes: { [key: string]: number }) => {
-    setPriceChanges(changes);
-  };
-
-  const handleFlowStatusesUpdate = (statuses: { [key: string]: FlowStatus }) => {
-    setFlowStatuses(statuses);
-  };
-
-  const handleMarketContractionParamsUpdate = (k: number, n: number) => {
-    setKValue(k);
-    setNValue(n);
-  };
 
   return (
     <GlobalProvider>
@@ -191,7 +173,7 @@ function App() {
                 <Simulation 
                   skusInAnalysis={skusInAnalysis}
                   priceChanges={priceChanges}
-                  onPriceChangesUpdate={handlePriceChangesUpdate}
+                  onPriceChangesUpdate={setPriceChanges}
                 />
               )}
 
@@ -207,7 +189,10 @@ function App() {
                 <MarketContraction 
                   kValue={kValue}
                   nValue={nValue}
-                  onParamsUpdate={handleMarketContractionParamsUpdate}
+                  onParamsUpdate={(k: number, n: number) => {
+                    setKValue(k);
+                    setNValue(n);
+                  }}
                 />
               )}
 
