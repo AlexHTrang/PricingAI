@@ -2,15 +2,37 @@ import React, { useState } from 'react';
 import PricingSimulator from './components/PricingSimulator';
 import SKUConfiguration from './components/SKUConfiguration';
 import Simulation from './components/Simulation';
+import Results from './components/Results';
+import VolumeFlow from './components/VolumeFlow';
+import MarketContraction from './components/MarketContraction';
 import heineken_logo from './assets/heineken-logo.png';
 import { SKU } from './services/api';
+
+type FlowStatus = 'at_fair_share' | 'above_fair_share' | 'below_fair_share' | 'na';
 
 function App() {
   const [activeTab, setActiveTab] = useState('sku-config');
   const [skusInAnalysis, setSkusInAnalysis] = useState<SKU[]>([]);
+  const [priceChanges, setPriceChanges] = useState<{ [key: string]: number }>({});
+  const [flowStatuses, setFlowStatuses] = useState<{ [key: string]: FlowStatus }>({});
+  const [kValue, setKValue] = useState(5);
+  const [nValue, setNValue] = useState(2);
 
   const handleSkusInAnalysisChange = (skus: SKU[]) => {
     setSkusInAnalysis(skus);
+  };
+
+  const handlePriceChangesUpdate = (changes: { [key: string]: number }) => {
+    setPriceChanges(changes);
+  };
+
+  const handleFlowStatusesUpdate = (statuses: { [key: string]: FlowStatus }) => {
+    setFlowStatuses(statuses);
+  };
+
+  const handleMarketContractionParamsUpdate = (k: number, n: number) => {
+    setKValue(k);
+    setNValue(n);
   };
 
   return (
@@ -62,34 +84,73 @@ function App() {
       </header>
       <main className="container mx-auto px-4 py-8">
         <div className="flex">
-          <aside className="w-64 pr-8">
+          <aside className="w-56 flex-shrink-0">
             <nav>
-              <h2 className="text-lg font-medium mb-4">Overview</h2>
+              <h2 className="text-lg font-medium mb-4">Simulation</h2>
               <ul className="space-y-2">
                 <li>
                   <button 
                     onClick={() => setActiveTab('sku-config')}
-                    className={`flex items-center w-full px-4 py-2 rounded-lg transition-colors ${
+                    className={`flex items-center w-full px-4 py-2 rounded-lg transition-colors whitespace-nowrap overflow-hidden ${
                       activeTab === 'sku-config' 
                         ? 'bg-green-100 text-green-700' 
                         : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                     }`}
                   >
-                    <span className="mr-2">📦</span>
-                    SKU Configuration
+                    <span className="mr-2 flex-shrink-0">📦</span>
+                    <span className="truncate">SKU Configuration</span>
                   </button>
                 </li>
                 <li>
                   <button 
                     onClick={() => setActiveTab('simulation')}
-                    className={`flex items-center w-full px-4 py-2 rounded-lg transition-colors ${
+                    className={`flex items-center w-full px-4 py-2 rounded-lg transition-colors whitespace-nowrap overflow-hidden ${
                       activeTab === 'simulation' 
                         ? 'bg-green-100 text-green-700' 
                         : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                     }`}
                   >
-                    <span className="mr-2">📊</span>
-                    Simulation
+                    <span className="mr-2 flex-shrink-0">📊</span>
+                    <span className="truncate">Price Configuration</span>
+                  </button>
+                </li>
+                <li>
+                  <button 
+                    onClick={() => setActiveTab('volume-flow')}
+                    className={`flex items-center w-full px-4 py-2 rounded-lg transition-colors whitespace-nowrap overflow-hidden ${
+                      activeTab === 'volume-flow' 
+                        ? 'bg-green-100 text-green-700' 
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    }`}
+                  >
+                    <span className="mr-2 flex-shrink-0">🔄</span>
+                    <span className="truncate">Volume Flow</span>
+                  </button>
+                </li>
+                <li>
+                  <button 
+                    onClick={() => setActiveTab('market-contraction')}
+                    className={`flex items-center w-full px-4 py-2 rounded-lg transition-colors whitespace-nowrap overflow-hidden ${
+                      activeTab === 'market-contraction' 
+                        ? 'bg-green-100 text-green-700' 
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    }`}
+                  >
+                    <span className="mr-2 flex-shrink-0">📉</span>
+                    <span className="truncate">Market Contraction</span>
+                  </button>
+                </li>
+                <li className="pt-4 mt-4 border-t border-gray-200">
+                  <button 
+                    onClick={() => setActiveTab('results')}
+                    className={`flex items-center w-full px-4 py-2 rounded-lg transition-colors whitespace-nowrap overflow-hidden ${
+                      activeTab === 'results' 
+                        ? 'bg-green-100 text-green-700' 
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    }`}
+                  >
+                    <span className="mr-2 flex-shrink-0">📈</span>
+                    <span className="truncate text-lg font-bold">Results</span>
                   </button>
                 </li>
               </ul>
@@ -97,7 +158,35 @@ function App() {
           </aside>
           <div className="flex-1 bg-white rounded-lg shadow">
             {activeTab === 'sku-config' && <SKUConfiguration onSkusInAnalysisChange={handleSkusInAnalysisChange} skusInAnalysis={skusInAnalysis} />}
-            {activeTab === 'simulation' && <Simulation skusInAnalysis={skusInAnalysis} />}
+            {activeTab === 'simulation' && (
+              <Simulation 
+                skusInAnalysis={skusInAnalysis} 
+                priceChanges={priceChanges}
+                onPriceChangesUpdate={handlePriceChangesUpdate} 
+              />
+            )}
+            {activeTab === 'volume-flow' && (
+              <VolumeFlow 
+                skusInAnalysis={skusInAnalysis}
+                flowStatuses={flowStatuses}
+                onFlowStatusesUpdate={handleFlowStatusesUpdate}
+              />
+            )}
+            {activeTab === 'market-contraction' && (
+              <MarketContraction 
+                kValue={kValue}
+                nValue={nValue}
+                onParamsUpdate={handleMarketContractionParamsUpdate}
+              />
+            )}
+            {activeTab === 'results' && (
+              <Results 
+                skusInAnalysis={skusInAnalysis} 
+                priceChanges={priceChanges}
+                kValue={kValue}
+                nValue={nValue}
+              />
+            )}
           </div>
         </div>
       </main>

@@ -40,9 +40,9 @@ const PricingSimulator: React.FC = () => {
             <thead>
               <tr className="border-b">
                 <th className="text-left py-3 px-4">Name of Product</th>
-                <th className="text-left py-3 px-4">Competitor or own SKU</th>
+                <th className="text-left py-3 px-4">Ownership</th>
                 <th className="text-left py-3 px-4">Current consumer price (€/unit)</th>
-                <th className="text-left py-3 px-4">Input - Consumer price change (%)</th>
+                <th className="text-left py-3 px-4">Input - Price change (%)</th>
                 <th className="text-left py-3 px-4">New consumer price (€/unit)</th>
                 <th className="text-left py-3 px-4">New GP (€/HL)</th>
               </tr>

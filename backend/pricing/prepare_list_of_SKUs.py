@@ -54,24 +54,23 @@ try:
     df_SKU['DATE'] = pd.to_datetime(df_SKU['DATE'])
     df_SKU_2025 = df_SKU[df_SKU['DATE'].dt.year == 2025].copy()
     
-    # Filter for specific item
-    specific_item = 'DB DOUBLE BROWN CANS 18X330ML'
-    item_data = df_SKU_2025[df_SKU_2025['ITEM'] == specific_item]
-    
-    # Calculate total sales units for the specific item
-    total_sales_units = item_data['Sales Unit'].sum()
-    print(f'\nData for {specific_item}:')
-    print(item_data[['DATE', 'ITEM', 'Sales Price per Unit', 'Sales Unit', 'PackSizeCleaned', 'UnitSizeCleaned']])
-    print(f'\nNumber of rows for {specific_item}: {len(item_data)}')
-    print(f'Total Sales Units for {specific_item}: {total_sales_units:,.0f}')
+    # Calculate volume for each row
+    df_SKU_2025['VolumeSold'] = df_SKU_2025['PackSizeCleaned'] * df_SKU_2025['UnitSizeCleaned'] * df_SKU_2025['Sales Unit']
     
     # Create aggregations
     agg_functions = {
         'Sales Price per Unit': 'mean',
-        'Sales Unit': 'sum'
+        'Sales Unit': 'sum',
+        'VolumeSold': 'sum'
     }
     
-    df_aggregated = df_SKU_2025.groupby(['ITEM', 'Level_1', 'Level_3']).agg(agg_functions).reset_index()
+    df_aggregated = df_SKU_2025.groupby(['ITEM', 'Level_1', 'Level_3', 'PackSizeCleaned', 'UnitSizeCleaned']).agg(agg_functions).reset_index()
+    
+    # Calculate total volume sold
+    total_volume = df_aggregated['VolumeSold'].sum()
+    
+    # Calculate VoMS
+    df_aggregated['VoMS'] = df_aggregated['VolumeSold'] / total_volume
     
     # Rename columns for clarity
     df_aggregated = df_aggregated.rename(columns={
@@ -80,9 +79,11 @@ try:
     })
     
     # Display results
-    print('\nAggregated Data Sample:')
-    print(df_aggregated.head(10))
+    print('\nAggregated Data Sample with VoMS:')
+    print(df_aggregated[['ITEM', 'VolumeSold', 'VoMS']].head(10))
     print('\nAggregated Data Shape:', df_aggregated.shape)
+    print(f'\nTotal Volume: {total_volume:,.2f}')
+    print(f'VoMS Sum (should be 1.0): {df_aggregated["VoMS"].sum():.4f}')
     
     # Save aggregated data
     output_path = '../data/aggregated_sales_2025.csv'

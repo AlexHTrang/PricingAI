@@ -58,21 +58,23 @@ def load_sku_data():
             'RSV': 'rsv',  # RSV (mass, EUR m)
             'Profit': 'gp_mass',  # GP (mass, EUR m)
             'Total_Sales_Units': 'unit_sold',  # Unit sold (# of k units)
+            'VoMS': 'volume_share',
+            'VaMS': 'value_share',
             'OWNERSHIP': 'ownership'
         })
         
         # Ensure numeric columns are float type
         numeric_columns = ['volume', 'customer_price', 'gp', 'volume_sold', 
                          'price_elasticity', 'price', 'rsv', 'gp_mass', 
-                         'unit_sold']
+                         'unit_sold', 'volume_share', 'value_share']
         for col in numeric_columns:
             df[col] = pd.to_numeric(df[col], errors='coerce')
         
-        # Calculate market shares
-        total_volume = df['volume_sold'].sum()
-        total_value = (df['customer_price'] * df['volume_sold']).sum()
-        df['volume_share'] = 0
-        df['value_share'] = 0
+        # # Calculate market shares
+        # total_volume = df['volume_sold'].sum()
+        # total_value = (df['customer_price'] * df['volume_sold']).sum()
+        # df['volume_share'] = 0
+        # df['value_share'] = 0
         
         # Round numeric values for display
         df = df.round({
@@ -84,7 +86,9 @@ def load_sku_data():
             'price': 2,
             'rsv': 2,
             'gp_mass': 2,
-            'unit_sold': 2
+            'unit_sold': 2,
+            'volume_share': 2,
+            'value_share': 2
         })
         
         # Fill any missing values with 0
