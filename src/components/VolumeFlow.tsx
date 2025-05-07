@@ -61,32 +61,6 @@ const VolumeFlow: React.FC<VolumeFlowProps> = ({ skusInAnalysis, flowStatuses, o
     }
   };
 
-  const getStatusText = (status: FlowStatus) => {
-    switch (status) {
-      case 'at_fair_share':
-        return 'At fair share';
-      case 'above_fair_share':
-        return 'Above fair share';
-      case 'below_fair_share':
-        return 'Below fair share';
-      default:
-        return 'n.a.';
-    }
-  };
-
-  const getStatusArrow = (status: FlowStatus) => {
-    switch (status) {
-      case 'at_fair_share':
-        return '▼';
-      case 'above_fair_share':
-        return '▲';
-      case 'below_fair_share':
-        return '▼';
-      default:
-        return '▼';
-    }
-  };
-
   const getFlowStatus = (fromSku: string, toSku: string): FlowStatus => {
     if (fromSku === toSku) return 'na';
     const key = `${fromSku}-${toSku}`;

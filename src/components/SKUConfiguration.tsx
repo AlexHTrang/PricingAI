@@ -15,10 +15,6 @@ const SKUConfiguration: React.FC<SKUConfigurationProps> = ({ onSkusInAnalysisCha
     });
   };
 
-  const calculateNewGP = (currentGP: number, priceChangePercent: number) => {
-    return currentGP * (1 + priceChangePercent / 100);
-  };
-
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedOwnership, setSelectedOwnership] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
@@ -26,7 +22,6 @@ const SKUConfiguration: React.FC<SKUConfigurationProps> = ({ onSkusInAnalysisCha
   const [availableSKUs, setAvailableSKUs] = useState<SKU[]>([]);
   const [loading, setLoading] = useState(false);
   const [allSKUs, setAllSKUs] = useState<SKU[]>([]);
-  const [priceChanges, setPriceChanges] = useState<Record<string, number>>({});
 
   const filterSKUs = useCallback((selectedSkuNames: string[]) => {
     let filteredSKUs = allSKUs.filter(sku => !selectedSkuNames.includes(sku.name));
@@ -115,18 +110,6 @@ const SKUConfiguration: React.FC<SKUConfigurationProps> = ({ onSkusInAnalysisCha
     const newSkusInAnalysis = skusInAnalysis.filter(s => s.name !== sku.name);
     onSkusInAnalysisChange(newSkusInAnalysis);
     filterSKUs(newSkusInAnalysis.map(s => s.name));
-  };
-
-  const handlePriceChangeInput = (skuName: string, value: string) => {
-    const newPriceChange = parseFloat(value);
-    setPriceChanges(prev => ({
-      ...prev,
-      [skuName]: newPriceChange
-    }));
-  };
-
-  const calculateNewPrice = (currentPrice: number, priceChangePercent: number) => {
-    return currentPrice * (1 + priceChangePercent / 100);
   };
 
   return (
