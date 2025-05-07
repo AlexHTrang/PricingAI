@@ -28,11 +28,41 @@ const SKUConfiguration: React.FC<SKUConfigurationProps> = ({ onSkusInAnalysisCha
   const [allSKUs, setAllSKUs] = useState<SKU[]>([]);
   const [priceChanges, setPriceChanges] = useState<Record<string, number>>({});
 
+  const filterSKUs = useMemo(() => (selectedSkuNames: string[]) => {
+    let filteredSKUs = allSKUs.filter(sku => !selectedSkuNames.includes(sku.name));
+
+    if (searchTerm) {
+      filteredSKUs = filteredSKUs.filter(sku => 
+        sku.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    if (selectedOwnership) {
+      filteredSKUs = filteredSKUs.filter(sku => 
+        sku.ownership === selectedOwnership
+      );
+    }
+
+    if (selectedCategory) {
+      filteredSKUs = filteredSKUs.filter(sku => 
+        sku.category === selectedCategory
+      );
+    }
+
+    if (selectedSegment) {
+      filteredSKUs = filteredSKUs.filter(sku => 
+        sku.segment === selectedSegment
+      );
+    }
+
+    setAvailableSKUs(filteredSKUs);
+  }, [allSKUs, searchTerm, selectedOwnership, selectedCategory, selectedSegment]);
+
   // Initialize selectedSKUs from skusInAnalysis
   useEffect(() => {
     const skuNames = skusInAnalysis.map(sku => sku.name);
     filterSKUs(skuNames);
-  }, [skusInAnalysis]);
+  }, [skusInAnalysis, filterSKUs]);
 
   // Reset segment when category changes
   useEffect(() => {
@@ -71,17 +101,6 @@ const SKUConfiguration: React.FC<SKUConfigurationProps> = ({ onSkusInAnalysisCha
     }
   }, [selectedCategory, allSKUs]);
 
-  // Fetch all SKUs on component mount
-  useEffect(() => {
-    fetchAllSKUs();
-  }, []);
-
-  // Filter SKUs when search or filters change
-  useEffect(() => {
-    const skuNames = skusInAnalysis.map(sku => sku.name);
-    filterSKUs(skuNames);
-  }, [searchTerm, selectedOwnership, selectedCategory, selectedSegment, allSKUs]);
-
   const fetchAllSKUs = async () => {
     try {
       setLoading(true);
@@ -96,35 +115,10 @@ const SKUConfiguration: React.FC<SKUConfigurationProps> = ({ onSkusInAnalysisCha
     }
   };
 
-  const filterSKUs = (selectedSkuNames: string[]) => {
-    let filteredSKUs = allSKUs.filter(sku => !selectedSkuNames.includes(sku.name));
-
-    if (searchTerm) {
-      filteredSKUs = filteredSKUs.filter(sku => 
-        sku.name.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    if (selectedOwnership) {
-      filteredSKUs = filteredSKUs.filter(sku => 
-        sku.ownership === selectedOwnership
-      );
-    }
-
-    if (selectedCategory) {
-      filteredSKUs = filteredSKUs.filter(sku => 
-        sku.category === selectedCategory
-      );
-    }
-
-    if (selectedSegment) {
-      filteredSKUs = filteredSKUs.filter(sku => 
-        sku.segment === selectedSegment
-      );
-    }
-
-    setAvailableSKUs(filteredSKUs);
-  };
+  // Fetch all SKUs on component mount
+  useEffect(() => {
+    fetchAllSKUs();
+  }, []);
 
   const handleSelectSKU = (sku: SKU) => {
     const newSkusInAnalysis = [...skusInAnalysis, sku];

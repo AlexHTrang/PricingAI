@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { SKU } from '../services/api';
 
 type FlowStatus = 'at_fair_share' | 'above_fair_share' | 'below_fair_share' | 'na';
