@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { api, SKU } from '../services/api';
 
 interface SKUConfigurationProps {
@@ -28,7 +28,7 @@ const SKUConfiguration: React.FC<SKUConfigurationProps> = ({ onSkusInAnalysisCha
   const [allSKUs, setAllSKUs] = useState<SKU[]>([]);
   const [priceChanges, setPriceChanges] = useState<Record<string, number>>({});
 
-  const filterSKUs = useMemo(() => (selectedSkuNames: string[]) => {
+  const filterSKUs = useCallback((selectedSkuNames: string[]) => {
     let filteredSKUs = allSKUs.filter(sku => !selectedSkuNames.includes(sku.name));
 
     if (searchTerm) {
@@ -58,11 +58,23 @@ const SKUConfiguration: React.FC<SKUConfigurationProps> = ({ onSkusInAnalysisCha
     setAvailableSKUs(filteredSKUs);
   }, [allSKUs, searchTerm, selectedOwnership, selectedCategory, selectedSegment]);
 
-  // Initialize selectedSKUs from skusInAnalysis
+  const fetchAllSKUs = useCallback(async () => {
+    try {
+      setLoading(true);
+      const skus = await api.getAllSKUs();
+      setAllSKUs(skus);
+    } catch (error) {
+      console.error('Error fetching SKUs:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Initialize selectedSKUs from skusInAnalysis and filter SKUs when dependencies change
   useEffect(() => {
     const skuNames = skusInAnalysis.map(sku => sku.name);
     filterSKUs(skuNames);
-  }, [skusInAnalysis, filterSKUs]);
+  }, [skusInAnalysis, filterSKUs, allSKUs]);
 
   // Reset segment when category changes
   useEffect(() => {
@@ -72,53 +84,26 @@ const SKUConfiguration: React.FC<SKUConfigurationProps> = ({ onSkusInAnalysisCha
   // Get available segments based on selected category
   const availableSegments = useMemo(() => {
     if (!selectedCategory) {
-      // When "ALL" is selected, show all unique segments from the data
       const uniqueSegments = Array.from(new Set(allSKUs.map(sku => sku.segment))).sort();
-      return ['', ...uniqueSegments]; // Empty string for "ALL" option
+      return ['', ...uniqueSegments];
     }
 
     switch (selectedCategory) {
       case 'TOTAL BEER':
-        return [
-          '',           // For "ALL" option
-          'ECONOMY',
-          'EVERYDAY CRAFT',
-          'MAINSTREAM',
-          'PREMIUM'
-        ];
+        return ['', 'ECONOMY', 'EVERYDAY CRAFT', 'MAINSTREAM', 'PREMIUM'];
       case 'TOTAL CIDER':
-        return [
-          '',           // For "ALL" option
-          'CIDER'
-        ];
+        return ['', 'CIDER'];
       case 'TOTAL WINE':
-        return [
-          '',           // For "ALL" option
-          'WINE'
-        ];
+        return ['', 'WINE'];
       default:
-        return [''];    // Just "ALL" option
+        return [''];
     }
   }, [selectedCategory, allSKUs]);
-
-  const fetchAllSKUs = async () => {
-    try {
-      setLoading(true);
-      const skus = await api.getAllSKUs();
-      setAllSKUs(skus);
-      const skuNames = skusInAnalysis.map(sku => sku.name);
-      filterSKUs(skuNames);
-    } catch (error) {
-      console.error('Error fetching SKUs:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // Fetch all SKUs on component mount
   useEffect(() => {
     fetchAllSKUs();
-  }, []);
+  }, [fetchAllSKUs]);
 
   const handleSelectSKU = (sku: SKU) => {
     const newSkusInAnalysis = [...skusInAnalysis, sku];

@@ -32,7 +32,6 @@ const VolumeFlow: React.FC<VolumeFlowProps> = ({ skusInAnalysis, flowStatuses, o
       } else if (newStatus === 'below_fair_share') {
         setWarningMessage('Warning: When using "Below fair share", at least one "Above fair share" should exist for balance. Please adjust to continue the Calculation for Volume Matrix Flow.');
       } else if (newStatus === 'at_fair_share') {
-        // Check which type of imbalance would be created
         const hasAbove = Object.values(newStatuses).some(status => status === 'above_fair_share');
         const hasBelow = Object.values(newStatuses).some(status => status === 'below_fair_share');
         
@@ -43,7 +42,7 @@ const VolumeFlow: React.FC<VolumeFlowProps> = ({ skusInAnalysis, flowStatuses, o
         }
       }
     } else {
-      setWarningMessage(''); // Clear warning if validation passes
+      setWarningMessage('');
     }
     
     onFlowStatusesUpdate(newStatuses);
@@ -138,15 +137,12 @@ const VolumeFlow: React.FC<VolumeFlowProps> = ({ skusInAnalysis, flowStatuses, o
 
   // Calculate Below Fair Share value
   const calculateBelowFairShare = (toSku: string): number => {
-    // Get Volume MS from SKU configuration
     const volumeMS = getVolumeMS(toSku);
     const option1 = 0.5 * volumeMS;
 
-    // Get unique SKUs with Above Fair Share and Below Fair Share
     const aboveFairShareSKUs = new Set<string>();
     const belowFairShareSKUs = new Set<string>();
 
-    // First pass: identify unique SKUs with Above/Below Fair Share
     skusInAnalysis.forEach(fromSku => {
       skusInAnalysis.forEach(targetSku => {
         const status = getFlowStatus(fromSku.name, targetSku.name);
@@ -158,12 +154,10 @@ const VolumeFlow: React.FC<VolumeFlowProps> = ({ skusInAnalysis, flowStatuses, o
       });
     });
 
-    // Calculate sum of Volume MS for Above Fair Share SKUs
     const aboveFairShareMSSum = Array.from(aboveFairShareSKUs).reduce((sum, skuName) => {
       return sum + getVolumeMS(skuName);
     }, 0);
 
-    // Calculate option 2
     const option2 = belowFairShareSKUs.size > 0 ? 
       volumeMS - ((0.5 * aboveFairShareMSSum) / belowFairShareSKUs.size) : 0;
 
@@ -177,21 +171,17 @@ const VolumeFlow: React.FC<VolumeFlowProps> = ({ skusInAnalysis, flowStatuses, o
       belowFairShareCount: belowFairShareSKUs.size
     });
 
-    // Return the higher value between option1 and option2
     return Math.max(option1, option2);
   };
 
   // Calculate Above Fair Share value
   const calculateAboveFairShare = (toSku: string): number => {
-    // Get Volume MS from SKU configuration
     const volumeMS = getVolumeMS(toSku);
     const option1 = 1.5 * volumeMS;
 
-    // Get unique SKUs with Above Fair Share and Below Fair Share
     const aboveFairShareSKUs = new Set<string>();
     const belowFairShareSKUs = new Set<string>();
 
-    // First pass: identify unique SKUs with Above/Below Fair Share
     skusInAnalysis.forEach(fromSku => {
       skusInAnalysis.forEach(targetSku => {
         const status = getFlowStatus(fromSku.name, targetSku.name);
@@ -203,12 +193,10 @@ const VolumeFlow: React.FC<VolumeFlowProps> = ({ skusInAnalysis, flowStatuses, o
       });
     });
 
-    // Calculate sum of Volume MS for Below Fair Share SKUs
     const belowFairShareMSSum = Array.from(belowFairShareSKUs).reduce((sum, skuName) => {
       return sum + getVolumeMS(skuName);
     }, 0);
 
-    // Calculate option 2
     const option2 = aboveFairShareSKUs.size > 0 ? 
       volumeMS + ((0.5 * belowFairShareMSSum) / aboveFairShareSKUs.size) : 0;
 
@@ -222,7 +210,6 @@ const VolumeFlow: React.FC<VolumeFlowProps> = ({ skusInAnalysis, flowStatuses, o
       aboveFairShareCount: aboveFairShareSKUs.size
     });
 
-    // Return the lower value between option1 and option2
     return Math.min(option1, option2);
   };
 
@@ -230,7 +217,6 @@ const VolumeFlow: React.FC<VolumeFlowProps> = ({ skusInAnalysis, flowStatuses, o
   const getVolumeFlowPercentage = (fromSku: string, toSku: string): string => {
     if (fromSku === toSku) return '0.00%';
 
-    // Check if validation passes
     if (!validateFairShareBalance(flowStatuses)) {
       return '0.00%';
     }
